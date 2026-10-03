@@ -440,7 +440,7 @@
 
                     <div class="route-item">
                         <div class="route-time">12:40 – 15:00</div>
-                        <button class="place-btn" onclick="openMap('35.2460,139.4711')">
+                        <button class="place-btn" onclick="window.open('https://www.google.com/maps/search/Kansai+International+Airport+Osaka', '_blank')">
                             <div class="place-info">
                                 <span class="place-name">간사이국제공항 (KIX)</span>
                                 <span class="place-detail">공항 → 숙소 (약 70–80분)</span>
@@ -456,7 +456,7 @@
 
                     <div class="route-item">
                         <div class="route-time">15:00 – 15:30</div>
-                        <button class="place-btn" onclick="openMap('34.6794,135.4998')">
+                        <button class="place-btn" onclick="window.open('https://www.google.com/maps/search/Nakanoshima+Qross+Osaka', '_blank')">
                             <div class="place-info">
                                 <span class="place-name">나카노시마 크로스</span>
                                 <span class="place-detail">GSE 개막 세션</span>
@@ -501,7 +501,7 @@
                 <div class="timeline">
                     <div class="route-item">
                         <div class="route-time">08:30 – 09:00</div>
-                        <button class="place-btn" onclick="openMap('34.7024,135.4980')">
+                        <button class="place-btn" onclick="window.open('https://www.google.com/maps/search/Grand+Front+Osaka+North+Building', '_blank')">
                             <div class="place-info">
                                 <span class="place-name">그랑프론트 오사카 북관</span>
                                 <span class="place-detail">행사장 도착 · 준비</span>
@@ -544,7 +544,7 @@
 
                     <div class="route-item">
                         <div class="route-time">13:10 – 16:40</div>
-                        <button class="place-btn" onclick="openMap('34.7032,135.4970')">
+                        <button class="place-btn" onclick="window.open('https://www.google.com/maps/search/Grand+Front+Osaka+4F+Knowledge+Theater+Pitch', '_blank')">
                             <div class="place-info">
                                 <span class="place-name">나레지시어터 (그랑프론트 북관 4층)</span>
                                 <span class="place-detail">피치 콘테스트</span>
@@ -601,7 +601,7 @@
 
                     <div class="route-item">
                         <div class="route-time">12:30 도착 목표</div>
-                        <button class="place-btn" onclick="openMap('34.6753,135.5260')">
+                        <button class="place-btn" onclick="window.open('https://www.google.com/maps/search/Osaka+University+of+Economics+Osumi+Campus', '_blank')">
                             <div class="place-info">
                                 <span class="place-name">오사카경제대학 오스미 캠퍼스</span>
                                 <span class="place-detail">특강 · 한일 학생 교류</span>
@@ -700,7 +700,7 @@
 
                     <div class="route-item">
                         <div class="route-time">09:30 – 11:30</div>
-                        <button class="place-btn" onclick="openMap('35.2460,139.4711')">
+                        <button class="place-btn" onclick="window.open('https://www.google.com/maps/search/Kansai+International+Airport+Osaka', '_blank')">
                             <div class="place-info">
                                 <span class="place-name">간사이국제공항 (KIX)</span>
                                 <span class="place-detail">탑승 수속</span>
@@ -937,12 +937,6 @@
 
             // Activate clicked tab
             event.target.classList.add('active');
-        }
-
-        function openMap(coords) {
-            // coords format: "latitude,longitude"
-            const url = `https://www.google.com/maps/?q=${coords}`;
-            window.open(url, '_blank');
         }
     </script>
 </body>
