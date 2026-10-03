@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오사카 GSE2026 동선 네비게이터</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 12px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 24px;
+            padding-top: 8px;
+        }
+
+        header h1 {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        header p {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .tab-btn {
+            flex-shrink: 0;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .content {
+            display: none;
+        }
+
+        .content.active {
+            display: block;
+        }
+
+        .day-card {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .day-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .day-date {
+            font-size: 14px;
+            font-weight: 600;
+            color: #667eea;
+            background: #f0f4ff;
+            padding: 6px 12px;
+            border-radius: 8px;
+            min-width: fit-content;
+        }
+
+        .day-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            flex-grow: 1;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 20px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 6px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .route-item {
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        .route-item::before {
+            content: '';
+            position: absolute;
+            left: -17px;
+            top: 6px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid #667eea;
+        }
+
+        .route-time {
+            font-size: 12px;
+            color: #999;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .place-btn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            padding: 12px;
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .place-btn:active {
+            background: #efefef;
+            transform: scale(0.98);
+        }
+
+        .place-info {
+            flex-grow: 1;
+        }
+
+        .place-name {
+            font-weight: 600;
+            color: #333;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .place-detail {
+            font-size: 12px;
+            color: #666;
+            display: block;
+        }
+
+        .map-icon {
+            font-size: 20px;
+            color: #667eea;
+            margin-left: 12px;
+        }
+
+        .route-info {
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: #f0f4ff;
+            border-left: 3px solid #667eea;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .emergency-info {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            margin-top: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .emergency-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #d32f2f;
+            margin-bottom: 12px;
+        }
+
+        .emergency-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 13px;
+        }
+
+        .emergency-item:last-child {
+            border-bottom: none;
+        }
+
+        .emergency-number {
+            font-weight: 600;
+            color: #d32f2f;
+            font-size: 14px;
+        }
+
+        .accommodation {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .accommodation-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .accommodation-detail {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+
+        .nearest-station {
+            font-size: 12px;
+            color: #555;
+            background: #f8f9fa;
+            padding: 8px;
+            border-radius: 6px;
+            margin-top: 8px;
+        }
+
+        .tab-content-welcome {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .welcome-item {
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .welcome-item:last-child {
+            border-bottom: none;
+        }
+
+        .welcome-label {
+            font-size: 12px;
+            color: #667eea;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .welcome-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .welcome-desc {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            font-size: 12px;
+            margin-top: 32px;
+            margin-bottom: 16px;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 480px) {
+            header h1 {
+                font-size: 20px;
+            }
+
+            .day-card {
+                padding: 12px;
+            }
+
+            .place-btn {
+                padding: 10px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🗺️ 오사카 동선 네비</h1>
+            <p>GSE2026 · 10/5 – 10/8</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('overview')">개요</button>
+            <button class="tab-btn" onclick="switchTab('day1')">10/5 (월)</button>
+            <button class="tab-btn" onclick="switchTab('day2')">10/6 (화)</button>
+            <button class="tab-btn" onclick="switchTab('day3')">10/7 (수)</button>
+            <button class="tab-btn" onclick="switchTab('day4')">10/8 (목)</button>
+            <button class="tab-btn" onclick="switchTab('contacts')">연락처</button>
+        </div>
+
+        <!-- 개요 탭 -->
+        <div id="overview" class="content active">
+            <div class="accommodation">
+                <div class="accommodation-title">🏨 숙소</div>
+                <div class="accommodation-detail">
+                    <strong>퀸테사 호텔 오사카 신사이바시</strong><br>
+                    3박 (10/5 – 10/8)
+                </div>
+                <div class="nearest-station">
+                    📍 나가호리바시역 도보 2분 (M선 남5번 출구)<br>
+                    📍 신사이바시역 도보 5분
+                </div>
+            </div>
+
+            <div class="day-card">
+                <div class="day-header">
+                    <span class="day-date">일정 요약</span>
+                </div>
+                <div class="route-info" style="border-left: 3px solid #667eea; margin-bottom: 12px;">
+                    <strong>10/5 (월):</strong> 도착 → GSE 개막<br>
+                    <strong>10/6 (화):</strong> GSE 전시·세션·피치 콘테스트<br>
+                    <strong>10/7 (수):</strong> 자유시간 → 오사카경제대학 특강·교류<br>
+                    <strong>10/8 (목):</strong> 귀국
+                </div>
+            </div>
+
+            <div class="day-card">
+                <div class="day-header">
+                    <span class="day-date">✈️ 항공편</span>
+                </div>
+                <div style="padding: 0;">
+                    <div style="padding: 12px; border-bottom: 1px solid #f0f0f0;">
+                        <div style="font-size: 12px; color: #999; margin-bottom: 4px;">출국</div>
+                        <div style="font-size: 14px; font-weight: 600; color: #333;">10월 5일 (월)</div>
+                        <div style="font-size: 13px; color: #666; margin-top: 6px;">청주국제공항 10:55 출발<br>
+                        오사카 (간사이) 12:40 도착</div>
+                    </div>
+                    <div style="padding: 12px;">
+                        <div style="font-size: 12px; color: #999; margin-bottom: 4px;">귀국</div>
+                        <div style="font-size: 14px; font-weight: 600; color: #333;">10월 8일 (목)</div>
+                        <div style="font-size: 13px; color: #666; margin-top: 6px;">오사카 (간사이) 13:30 출발<br>
+                        청주국제공항 도착</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="emergency-info">
+                <div class="emergency-title">🚨 긴급 연락처</div>
+                <div class="emergency-item">
+                    <span>경찰</span>
+                    <span class="emergency-number">110</span>
+                </div>
+                <div class="emergency-item">
+                    <span>구급·화재</span>
+                    <span class="emergency-number">119</span>
+                </div>
+                <div class="emergency-item">
+                    <span>대한민국 총영사관</span>
+                    <span class="emergency-number">06-4256-2345</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 10/5 탭 -->
+        <div id="day1" class="content">
+            <div class="day-card">
+                <div class="day-header">
+                    <span class="day-date">10/5 (월)</span>
+                    <span class="day-title">출국 · GSE 개막</span>
+                </div>
+                <div class="timeline">
+                    <div class="route-item">
+                        <div class="route-time">~ 09:20</div>
+                        <div class="route-info" style="background: #fff3cd;">
+                            <strong>📸 단체사진 1️⃣ 촬영</strong><br>
+                            <span style="font-size: 12px; color: #666; margin-top: 4px; display: block;">청주공항 앞에서 모두 집합</span>
+                        </div>
+                    </div>
+
+                    <div class="route-item">
+                        <div class="route-time">10:55 – 12:40</div>
+                        <div class="route-info" style="background: #e8f5e9;">
+                            <strong>✈️ 항공편</strong><br>
+                            청주국제공항 10:55 출발<br>
+                            간사이공항 12:40 도착
+                        </div>
+                    </div>
+
+                    <div class="route-item">
+                        <div class="route-time">12:40 – 15:00</div>
+                        <button class="place-btn" onclick="openMap('35.2460,139.4711')">
+                            <div class="place-info">
+                                <span class="place-name">간사이국제공항 (KIX)</span>
+                                <span class="place-detail">공항 → 숙소 (약 70–80분)</span>
+                            </div>
+                            <span class="map-icon">📍</span>
+                        </button>
+                        <div class="route-info">
+                            난카이선 (공항급행) 간사이공항역 → 난바역 (약 45분)<br>
+                            M 미도스지선 난바 → 신사이바시 (1정거장)<br>
+                            도보 신사이바시역 → 호텔 약 5분
+                        </div>
+                    </div>
+
+                    <div class="route-item">
+                        <div class="route-time">15:00 – 15:30</div>
+                        <button class="place-btn" onclick="openMap('34.6794,135.4998')">
+                            <div class="place-info">
+                                <span class="place-name">나카노시마 크로스</span>
+                                <span class="place-detail">GSE 개막 세션</span>
+                            </div>
+                            <span class="map-icon">📍</span>
+                        </button>
+                        <div class="route-info">
+                            호텔 → 요쓰바시역 (도보 또는 지하로 연결)<br>
+                            Y 요쓰바시선 요쓰바시 → 히고바시 (2정거장)<br>
+                            도보 히고바시역 → 나카노시마 크로스 약 10분<br>
+                            <strong>⏱️ 시간이 빠듯하면 택시 이동 (약 15–20분)</strong>
+                        </div>
+                    </div>
+
+                    <div class="route-item">
+                        <div class="route-time">16:10 – 16:55</div>
+                        <div class="route-info" style="background: #fff5e6; border-left: 3px solid #ff6b6b;">
+                            <strong>🎯 Team 2 세션</strong><br>
+                            <strong>일본발 헬스케어의 글로벌 성장: 투자와 파트너십</strong><br>
+                            <span style="font-size: 12px; color: #555; margin-top: 4px; display: block;">Rahul Pannala (Mayo Clinic) / James H. Spann Jr. (Boyd Street Capital) / Shahram Seyedin-Noor (Civilization Ventures) / Jamie Sundsbak (Mayo Clinic Platform)</span><br>
+                            <span style="font-size: 12px; color: #666; margin-top: 6px; display: block;">📍 무대 A · 콩그레스 스퀘어 오사카 나카노시마</span>
+                        </div>
+                    </div>
+
+                    <div class="route-item">
+                        <div class="route-time">19:00 ~</div>
+                        <div class="route-info" style="background: #fff3cd;">
+                            팀별 시사점 공유 · 토의, 저녁 식사
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 10/6 탭 -->
+        <div id="day2" class="content">
+            <div class="day-card">
+                <div class="day-header">
+                    <span class="day-date">10/6 (화)</span>
+                    <span class="day-title">GSE 전시·세션·피치</span>
+                </div>
+                <div class="timeline">
+                    <div class="route-item">
+                        <div class="route-time">08:30 – 09:00</div>
+                        <button class="place-btn" onclick="openMap('34.7024,135.4980')">
+                            <div class="place-info">
+                                <span class="place-name">그랑프론트 오사카 북관</span>
+                                <span class="place-detail">행사장 도착 · 준비</span>
+                            </div>
+                            <span class="map-icon">📍</span>
+                        </button>
+                        <div class="route-info">
+                            호텔 → 신사이바시역 (도보 약 5분)<br>
+                            M 미도스지선 신사이바시 → 우메다 (3정거장, 약 7분)<br>
+                            도보 우메다역 → 그랑프론트 북관 약 5–10분<br>
+                            <strong>⚠️ 우메다역 출구가 많음 — "グランフロント大阪" 표지판 따라가기</strong>
+                        </div>
+                    </div>
+
+
+                    <div class="route-item">
+                        <div class="route-time">10:50 – 11:35</div>
+                        <div class="route-info" style="background: #fff5e6; border-left: 3px solid #ff6b6b;">
+                            <strong>🎯 Team 2 세션 (무대 C)</strong><br>
+                            <strong>글로벌 VC가 보는 딥테크 투자 흐름과 차세대 유니콘</strong><br>
+                            <span style="font-size: 12px; color: #666; margin-top: 6px; display: block;">📍 그랑드 프런트 북관 4층 Knowledge Theater</span>
+                        </div>
+                    </div>
+
+                    <div class="route-item">
+                        <div class="route-time">12:00 – 13:00</div>
+                        <div class="route-info" style="background: #fff3cd;">
+                            점심 식사
+                        </div>
+                    </div>
+
+                    <div class="route-item">
+                        <div class="route-time">13:05 – 13:50</div>
+                        <div class="route-info" style="background: #fff5e6; border-left: 3px solid #ff6b6b;">
+                            <strong>🎯 Team 2 세션 (무대 D)</strong><br>
+                            <strong>AGI 시대의 산업 개척: AI 인프라에서 피지컬 AI로</strong><br>
+                            <span style="font-size: 12px; color: #666; margin-top: 6px; display: block;">📍 그랑드 프런트 북관 4층 Knowledge Theater</span>
+                        </div>
+                    </div>
+
+                    <div class="route-item">
+                        <div class="route-time">13:10 – 16:40</div>
+                        <button class="place-btn" onclick="openMap('34.7032,135.4970')">
+                            <div class="place-info">
+                                <span class="place-name">나레지시어터 (그랑프론트 북관 4층)</span>
+                                <span class="place-detail">피치 콘테스트</span>
+                            </div>
+                            <span class="map-icon">📍</span>
+                        </button>
+                        <div class="route-info">
+                            <strong>🎯 Team 2 피치 시간:</strong><br>
+                            <span style="display: block; margin-top: 6px;"><strong>13:10 피치 1부</strong> — Farmio, AironWorks, Liquium, Periotherapia, AIRATO</span>
+                            <span style="display: block; margin-top: 6px;"><strong>14:20 피치 2부</strong> — reThink64, bitBiome, Biobytes, EF Polymer, A-SEEDS</span>
+                            <span style="display: block; margin-top: 6px;"><strong>15:30 피치 3부</strong> — TopoLogic, Aeterlink, Nicslab, LINEA Innovations, Kyoto Fusioneering</span>
+                            <span style="display: block; margin-top: 6px; font-size: 12px; color: #666;">비즈니스 모델·투자 전략·피칭 기법 핵심 기록</span>
+                        </div>
+                    </div>
+
+                    <div class="route-item">
+                        <div class="route-time">17:30 ~</div>
+                        <div class="route-info" style="background: #fff3cd;">
+                            팀별 시사점 공유 · 토의, 저녁 식사
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 10/7 탭 -->
+        <div id="day3" class="content">
+            <div class="day-card">
+                <div class="day-header">
+                    <span class="day-date">10/7 (수)</span>
+                    <span class="day-title">자유 시간 · 오사카경제대학</span>
+                </div>
+                <div class="timeline">
+                    <div class="route-item">
+                        <div class="route-time">08:30 – 11:30</div>
+                        <div class="route-info" style="background: #f0f4ff;">
+                            <strong>자유 시간 · 팀별 준비</strong><br>
+                            조식, 자유 시간, 점심 (각자)<br>
+                            <span style="display: block; margin-top: 8px; font-weight: 600; color: #333;">📝 필수 준비:</span>
+                            <span style="display: block; margin-top: 4px; font-size: 12px;">• GSE2026 박람회 참여 소감 및 주요 조사·분석 내용 정리</span>
+                            <span style="display: block; margin-top: 2px; font-size: 12px;">• 팀별 핵심 내용 일본어 번역 (AI 활용 권장)</span>
+                            <span style="display: block; margin-top: 2px; font-size: 12px;">• 신사이바시 주변 상점 관찰 및 혁신 내용 기록</span>
+                            <span style="display: block; margin-top: 8px; color: #666;"><strong>⚠️ 혼자 다니지 말고 룸메이트와 함께</strong></span>
+                        </div>
+                    </div>
+
+                    <div class="route-item">
+                        <div class="route-time">11:45</div>
+                        <div class="route-info" style="background: #fff3cd;">
+                            <strong>🏨 숙소 로비 집결</strong><br>
+                            <span style="font-size: 12px; color: #666; margin-top: 4px; display: block;">팀장이 인원 확인 후 이동</span>
+                        </div>
+                    </div>
+
+                    <div class="route-item">
+                        <div class="route-time">12:30 도착 목표</div>
+                        <button class="place-btn" onclick="openMap('34.6753,135.5260')">
+                            <div class="place-info">
+                                <span class="place-name">오사카경제대학 오스미 캠퍼스</span>
+                                <span class="place-detail">특강 · 한일 학생 교류</span>
+                            </div>
+                            <span class="map-icon">📍</span>
+                        </button>
+                        <div class="route-info">
+                            <strong>택시 이동 (팀별 1대, 약 30분)</strong><br>
+                            기사님께 보여줄 문구:<br>
+                            大阪経済大学 大隅キャンパスまでお願いします。<br>
+                            大阪市東淀川区大隅2-2-8（〒533-8533）<br><br>
+                            <strong>또는 지하철 이동:</strong><br>
+                            호텔 → 나가호리바시역 (도보 2분)<br>
+                            N 나가호리쓰루미료쿠치선 나가호리바시 → 가모욘초메 (환승)<br>
+                            I 이마자토스지선 가모욘초메 → 즈이코욘초메<br>
+                            도보 즈이코욘초메역 → 오사카경제대학 약 5–10분<br>
+                            (총 40분 안팎)
+                        </div>
+                    </div>
+
+                    <div class="route-item">
+                        <div class="route-time">12:30 – 13:00</div>
+                        <div class="route-info" style="background: #f0f4ff;">
+                            특강 시작 전까지 캠퍼스 둘러보기<br>
+                            📍 C관 2층 A교실 (大阪経済大学 C館2階 A教室)
+                        </div>
+                    </div>
+
+                    <div class="route-item">
+                        <div class="route-time">13:00 – 13:30</div>
+                        <div class="route-info" style="background: #f0f4ff;">
+                            <strong>오사카경제대학 특강 I</strong><br>
+                            일본 비즈니스 특강
+                        </div>
+                    </div>
+
+                    <div class="route-item">
+                        <div class="route-time">13:30 – 15:00</div>
+                        <div class="route-info" style="background: #f0f4ff;">
+                            <strong>오사카경제대학 특강 II</strong><br>
+                            일본 비즈니스 특강
+                        </div>
+                    </div>
+
+                    <div class="route-item">
+                        <div class="route-time">15:00 – 16:30</div>
+                        <div class="route-info" style="background: #e3f2fd; border-left: 3px solid #667eea;">
+                            <strong>🤝 한일 학생 교류</strong><br>
+                            <span style="display: block; margin-top: 6px; font-size: 13px;">팀별로 다음 내용 나눔:</span>
+                            <span style="display: block; margin-top: 4px; font-size: 12px;">✓ GSE2026 박람회 참여 소감 및 느낀 점</span>
+                            <span style="display: block; margin-top: 2px; font-size: 12px;">✓ 일본 학생들의 한국 학생에 대한 궁금한 점</span>
+                            <span style="display: block; margin-top: 2px; font-size: 12px;">✓ 한국 학생들의 일본 학생·창업 생태계에 대한 궁금한 점</span>
+                            <span style="display: block; margin-top: 2px; font-size: 12px;">✓ IP 교육, 창업, AI, 취업 등 양국 제도·기회 비교</span>
+                            <span style="display: block; margin-top: 6px; font-size: 11px; color: #666;">팀별 아이디어 개발 차원의 인터뷰 및 의견 수집</span>
+                        </div>
+                    </div>
+
+                    <div class="route-item">
+                        <div class="route-time">17:00 ~</div>
+                        <div class="route-info" style="background: #fff3cd; border-left: 3px solid #ff9800;">
+                            <strong>🍽️ 함께하는 저녁 식사</strong><br>
+                            <span style="font-size: 12px; color: #666; margin-top: 4px; display: block;">일본 학생 + 교수님 + 한국 팀 전체</span>
+                            <span style="font-size: 12px; color: #666; margin-top: 2px; display: block;"><strong>✓ 식사비 지원 예정</strong></span>
+                        </div>
+                    </div>
+
+                    <div class="route-item">
+                        <div class="route-time">귀실 후</div>
+                        <div class="route-info" style="background: #e8f5e9;">
+                            <strong>🌙 저녁 자유시간</strong><br>
+                            <span style="font-size: 12px; color: #666; margin-top: 4px; display: block;">따로 큰 통제 없이 편하게 즐기세요!</span>
+                            <span style="font-size: 12px; color: #666; margin-top: 4px; display: block;"><strong>⚠️ 들어오는 시간만 단톡방에 알려주세요</strong></span>
+                            <span style="font-size: 12px; color: #666; margin-top: 4px; display: block;">교수님께는 11시쯤 모두 복귀했다고 말씀드릴 예정입니다</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 10/8 탭 -->
+        <div id="day4" class="content">
+            <div class="day-card">
+                <div class="day-header">
+                    <span class="day-date">10/8 (목)</span>
+                    <span class="day-title">귀국</span>
+                </div>
+                <div class="timeline">
+                    <div class="route-item">
+                        <div class="route-time">~ 09:30</div>
+                        <div class="route-info" style="background: #fff3cd;">
+                            <strong>체크아웃 완료</strong><br>
+                            방 열쇠(카드키) 반납, 물건 확인<br>
+                            <strong>로비 집결</strong>
+                        </div>
+                    </div>
+
+                    <div class="route-item">
+                        <div class="route-time">09:30 – 11:30</div>
+                        <button class="place-btn" onclick="openMap('35.2460,139.4711')">
+                            <div class="place-info">
+                                <span class="place-name">간사이국제공항 (KIX)</span>
+                                <span class="place-detail">탑승 수속</span>
+                            </div>
+                            <span class="map-icon">📍</span>
+                        </button>
+                        <div class="route-info">
+                            호텔 → 신사이바시역 (도보 약 5분)<br>
+                            M 미도스지선 신사이바시 → 난바 (1정거장)<br>
+                            난카이선 난바 → 간사이공항 (약 45분)<br>
+                            탑승 수속 (체크인, 보안 심사)
+                        </div>
+                    </div>
+
+                    <div class="route-item">
+                        <div class="route-time">13:30</div>
+                        <div class="route-info" style="background: #f0f4ff;">
+                            <strong>간사이 출발</strong><br>
+                            청주국제공항 도착
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 연락처 탭 -->
+        <div id="contacts" class="content">
+            <div class="day-card">
+                <div class="day-header">
+                    <span class="day-date">🎖️ 총괄 리더</span>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                        <tr style="background: #f0f4ff;">
+                            <td style="padding: 10px; border-bottom: 1px solid #e0e0e0; font-weight: 600;">역할</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #e0e0e0; font-weight: 600;">이름</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #e0e0e0; font-weight: 600;">이메일</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #e0e0e0; font-weight: 600;">전화</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">총팀장</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">김태준</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0; font-size: 12px;">xownsguddк@naver.com</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">010-2345-9538</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">총부팀장</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">박상진</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0; font-size: 12px;">sophiee12@chungbuk.ac.kr</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">010-4227-0996</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="day-card">
+                <div class="day-header">
+                    <span class="day-date">🎯 Team 1 연락처</span>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                        <tr style="background: #f0f4ff;">
+                            <td style="padding: 10px; border-bottom: 1px solid #e0e0e0; font-weight: 600;">역할</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #e0e0e0; font-weight: 600;">이름</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #e0e0e0; font-weight: 600;">이메일</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #e0e0e0; font-weight: 600;">전화</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">팀장</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">정세한</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0; font-size: 12px;">jsh030317@naver.com</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">010-4321-0968</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;"></td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">김태준</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0; font-size: 12px;">xownsguddк@naver.com</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">010-2345-9538</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;"></td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">박상진</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0; font-size: 12px;">sophiee12@chungbuk.ac.kr</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">010-4227-0996</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+
+            <div class="day-card">
+                <div class="day-header">
+                    <span class="day-date">🎯 Team 2 연락처</span>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                        <tr style="background: #fff5e6;">
+                            <td style="padding: 10px; border-bottom: 1px solid #e0e0e0; font-weight: 600;">이름</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #e0e0e0; font-weight: 600;">이메일</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #e0e0e0; font-weight: 600;">전화</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">이채정 (팀장)</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0; font-size: 12px;">cojjd03e@naver.com</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">010-4279-2113</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">김연우</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0; font-size: 12px;">yeonu0118@naver.com</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">010-2608-0952</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">김성진</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0; font-size: 12px;">ksj_22@chungbuk.ac.kr</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">010-8610-1696</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">조윤호</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0; font-size: 12px;">uno4792@naver.com</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">010-7747-3005</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="day-card">
+                <div class="day-header">
+                    <span class="day-date">🎯 Team 3 연락처</span>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                        <tr style="background: #e8f5e9;">
+                            <td style="padding: 10px; border-bottom: 1px solid #e0e0e0; font-weight: 600;">이름</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #e0e0e0; font-weight: 600;">이메일</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #e0e0e0; font-weight: 600;">전화</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">이유민 (팀장)</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0; font-size: 12px;">armeriaum@gmail.com</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">010-7633-9724</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">김우현</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0; font-size: 12px;">kwh307@naver.com</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">010-8624-2126</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">최지선</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0; font-size: 12px;">cwlwl316@naver.com</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">010-3400-4591</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="day-card">
+                <div class="day-header">
+                    <span class="day-date">🎯 Team 4 연락처</span>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                        <tr style="background: #fce4ec;">
+                            <td style="padding: 10px; border-bottom: 1px solid #e0e0e0; font-weight: 600;">이름</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #e0e0e0; font-weight: 600;">이메일</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #e0e0e0; font-weight: 600;">전화</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">임태경 (팀장)</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0; font-size: 12px;">itk030429@naver.com</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">010-9351-9224</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">황유나</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0; font-size: 12px;">una030306@naver.com</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">010-8422-3459</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">전지인</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0; font-size: 12px;">jiin040502@naver.com</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">010-4737-2075</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">변가은</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0; font-size: 12px;">leveca158@naver.com</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">010-8435-6536</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="day-card">
+                <div class="day-header">
+                    <span class="day-date">🚨 긴급 연락처 (현지)</span>
+                </div>
+                <div class="emergency-info" style="box-shadow: none; padding: 0;">
+                    <div class="emergency-item">
+                        <span>경찰</span>
+                        <span class="emergency-number">110</span>
+                    </div>
+                    <div class="emergency-item">
+                        <span>구급·화재</span>
+                        <span class="emergency-number">119</span>
+                    </div>
+                    <div class="emergency-item">
+                        <span>대한민국 총영사관</span>
+                        <span class="emergency-number">06-4256-2345</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            💡 장소를 탭하면 구글 지도가 열립니다<br>
+            안전하고 즐거운 여행 되세요! 🇯🇵
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabName) {
+            // Hide all content
+            const contents = document.querySelectorAll('.content');
+            contents.forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // Deactivate all tabs
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            tabBtns.forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected content
+            document.getElementById(tabName).classList.add('active');
+
+            // Activate clicked tab
+            event.target.classList.add('active');
+        }
+
+        function openMap(coords) {
+            // coords format: "latitude,longitude"
+            const url = `https://www.google.com/maps/?q=${coords}`;
+            window.open(url, '_blank');
+        }
+    </script>
+</body>
+</html>
