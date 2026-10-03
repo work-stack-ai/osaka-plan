@@ -360,7 +360,13 @@
                 </div>
                 <div class="nearest-station">
                     📍 나가호리바시역 도보 2분 (M선 남5번 출구)<br>
-                    📍 신사이바시역 도보 5분
+                    📍 신사이바시역 도보 5분<br>
+                    <button class="place-btn" style="margin-top: 10px;" onclick="window.open('https://www.google.com/maps/search/Quintessa+Hotel+Osaka+Shinsaibashi', '_blank')">
+                        <div class="place-info">
+                            <span class="place-name">호텔 위치 보기</span>
+                        </div>
+                        <span class="map-icon">📍</span>
+                    </button>
                 </div>
             </div>
 
@@ -440,17 +446,39 @@
 
                     <div class="route-item">
                         <div class="route-time">12:40 – 15:00</div>
-                        <button class="place-btn" onclick="window.open('https://www.google.com/maps/search/Kansai+International+Airport+Osaka', '_blank')">
+                        <div style="margin-bottom: 12px;">
+                            <button class="place-btn" onclick="window.open('https://www.google.com/maps/search/Kansai+International+Airport+Osaka', '_blank')">
+                                <div class="place-info">
+                                    <span class="place-name">간사이국제공항 (KIX)</span>
+                                    <span class="place-detail">입국심사 · 짐 수령</span>
+                                </div>
+                                <span class="map-icon">📍</span>
+                            </button>
+                        </div>
+                        <div class="route-info" style="background: #e8f5e9;">
+                            <strong>공항 → 숙소 이동 (약 70–80분)</strong><br>
+                            <span style="display: block; margin-top: 6px;">1️⃣ 난카이선 (공항급행)</span>
+                            <span style="font-size: 12px; color: #666; display: block;">간사이공항역 → 난바역 (약 45분)</span>
+                            <span style="display: block; margin-top: 6px;">2️⃣ M 미도스지선</span>
+                            <span style="font-size: 12px; color: #666; display: block;">난바 → 신사이바시 (1정거장)</span>
+                            <span style="display: block; margin-top: 6px;">3️⃣ 도보</span>
+                            <span style="font-size: 12px; color: #666; display: block;">신사이바시역 → 호텔 약 5분</span>
+                        </div>
+                    </div>
+
+                    <div class="route-item">
+                        <div class="route-time">15:00 도착</div>
+                        <button class="place-btn" onclick="window.open('https://www.google.com/maps/search/Quintessa+Hotel+Osaka+Shinsaibashi', '_blank')">
                             <div class="place-info">
-                                <span class="place-name">간사이국제공항 (KIX)</span>
-                                <span class="place-detail">공항 → 숙소 (약 70–80분)</span>
+                                <span class="place-name">퀸테사 호텔 오사카 신사이바시</span>
+                                <span class="place-detail">체크인</span>
                             </div>
                             <span class="map-icon">📍</span>
                         </button>
-                        <div class="route-info">
-                            난카이선 (공항급행) 간사이공항역 → 난바역 (약 45분)<br>
-                            M 미도스지선 난바 → 신사이바시 (1정거장)<br>
-                            도보 신사이바시역 → 호텔 약 5분
+                        <div class="route-info" style="background: #fff3cd;">
+                            <strong>체크인: 15:00부터</strong><br>
+                            <span style="font-size: 12px; color: #666; margin-top: 6px; display: block;">입국심사 후 전원 모일 때까지 도착 로비에서 대기</span>
+                            <span style="font-size: 12px; color: #666; margin-top: 4px; display: block;">먼저 도착하면 프런트에 짐만 맡기고 근처를 구경해도 됩니다</span>
                         </div>
                     </div>
 
